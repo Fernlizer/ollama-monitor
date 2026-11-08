@@ -1,0 +1,16 @@
+services:
+  ollama-monitor:
+    build: .
+    container_name: ollama-monitor
+    ports:
+      - "9020:9020"
+    environment:
+      # Ollama API on the macOS host (Docker Desktop resolves host.docker.internal)
+      OLLAMA_URL: http://host.docker.internal:11434
+      # Host agent: process metrics, disk usage, service start/stop/restart
+      HOST_AGENT_URL: http://host.docker.internal:9021
+      OLLAMA_LOG_DIR: /host-logs
+    volumes:
+      # live Ollama logs, read-only
+      - ~/.ollama/logs:/host-logs:ro
+    restart: unless-stopped

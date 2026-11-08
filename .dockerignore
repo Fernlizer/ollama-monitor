@@ -1,0 +1,12 @@
+.venv
+__pycache__
+*.pyc
+.git
+.gitignore
+.DS_Store
+docs
+*.md
+host-agent
+start.sh
+install.sh
+docker-compose.yml
