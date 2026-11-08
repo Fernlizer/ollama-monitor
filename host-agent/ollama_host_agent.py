@@ -197,9 +197,9 @@ class Handler(BaseHTTPRequestHandler):
             self._send({"error": str(e)}, 500)
 
     def log_message(self, fmt, *args):
-        print(f"[host-agent] {self.address_string()} {fmt % args}")
+        print(f"[host-agent] {self.address_string()} {fmt % args}", flush=True)
 
 
 if __name__ == "__main__":
-    print(f">> Ollama Monitor host agent ที่ http://{HOST}:{PORT}")
+    print(f">> Ollama Monitor host agent ที่ http://{HOST}:{PORT}", flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()

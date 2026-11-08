@@ -34,8 +34,15 @@ cat > "$PLIST" <<EOF
 EOF
 launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
-sleep 1
-curl -sf http://127.0.0.1:9021/health >/dev/null && echo "   host agent OK (http://127.0.0.1:9021)" \
+# รอ agent พร้อมตอบ (polling สูงสุด ~20 วิ) — launchd spawn อาจช้ากว่า 1 วินาที
+AGENT_OK=""
+for i in $(seq 1 40); do
+  if curl -sf --noproxy '*' --max-time 1 http://127.0.0.1:9021/health >/dev/null 2>&1; then
+    AGENT_OK=1; break
+  fi
+  sleep 0.5
+done
+[ -n "$AGENT_OK" ] && echo "   host agent OK (http://127.0.0.1:9021)" \
   || { echo "   host agent ยังไม่ตอบ — ดู log ที่ /tmp/ollama-monitor-host-agent.log"; exit 1; }
 
 echo ">> [2/3] Build + รัน dashboard ใน Docker..."
@@ -43,8 +50,14 @@ docker compose build
 docker compose up -d
 
 echo ">> [3/3] ตรวจสอบ..."
-sleep 3
-curl -sf http://127.0.0.1:9020/api/overview >/dev/null && echo "   dashboard OK (http://localhost:9020)" \
+DASH_OK=""
+for i in $(seq 1 30); do
+  if curl -sf --noproxy '*' --max-time 2 http://127.0.0.1:9020/api/overview >/dev/null 2>&1; then
+    DASH_OK=1; break
+  fi
+  sleep 1
+done
+[ -n "$DASH_OK" ] && echo "   dashboard OK (http://localhost:9020)" \
   || { echo "   dashboard ยังไม่ตอบ — ดู log: docker compose logs"; exit 1; }
 
 echo ""
